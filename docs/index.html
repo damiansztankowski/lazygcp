@@ -1,0 +1,1438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="light dark" />
+  <script>
+    {
+      const savedScheme = localStorage.getItem("color-scheme");
+      if (savedScheme) {
+        document.querySelector('meta[name="color-scheme"]').content = savedScheme;
+        document.documentElement.classList.add("theme-" + savedScheme);
+      }
+    }
+  </script>
+  <title>⚡ lazygcp — The Terminal UI (TUI), Inline SSH Cockpit, Live IAM Auditor &amp; Cloud Billing FinOps Engine for Google Cloud</title>
+  <meta name="description" content="Stop waiting 15 seconds for the Google Cloud Console. lazygcp brings k9s and lazydocker speed to GCP with an embedded POSIX PTY SSH terminal, live Project IAM &amp; Security assessment, Cloud Billing API v1 burn-rate analytics, and 1:1 Reverse-Terraform export." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: light dark;
+
+      /* Light / Dark adaptive design tokens with @media fallback + light-dark() */
+      --bg-canvas-light: #f8fafc;
+      --bg-canvas-dark: #060913;
+      --bg-surface-light: #ffffff;
+      --bg-surface-dark: #0d1324;
+      --bg-elevated-light: #f1f5f9;
+      --bg-elevated-dark: #131c33;
+      --text-primary-light: #0f172a;
+      --text-primary-dark: #f8fafc;
+      --text-muted-light: #475569;
+      --text-muted-dark: #94a3b8;
+      --border-subtle-light: rgba(15, 23, 42, 0.1);
+      --border-subtle-dark: rgba(148, 163, 184, 0.16);
+      --brand-cyan-light: #0284c7;
+      --brand-cyan-dark: #22d3ee;
+      --brand-emerald-light: #059669;
+      --brand-emerald-dark: #34d399;
+      --brand-purple-light: #7c3aed;
+      --brand-purple-dark: #a78bfa;
+      --brand-amber-light: #d97706;
+      --brand-amber-dark: #fbbf24;
+      --brand-rose-light: #e11d48;
+      --brand-rose-dark: #fb7185;
+      --scroll-thumb-light: #94a3b8;
+      --scroll-thumb-dark: #334155;
+      --scroll-track-light: #e2e8f0;
+      --scroll-track-dark: #0f172a;
+
+      --bg-canvas: var(--bg-canvas-dark);
+      --bg-surface: var(--bg-surface-dark);
+      --bg-elevated: var(--bg-elevated-dark);
+      --text-primary: var(--text-primary-dark);
+      --text-muted: var(--text-muted-dark);
+      --border-subtle: var(--border-subtle-dark);
+      --brand-cyan: var(--brand-cyan-dark);
+      --brand-emerald: var(--brand-emerald-dark);
+      --brand-purple: var(--brand-purple-dark);
+      --brand-amber: var(--brand-amber-dark);
+      --brand-rose: var(--brand-rose-dark);
+      --scroll-thumb: var(--scroll-thumb-dark);
+      --scroll-track: var(--scroll-track-dark);
+
+      @media (prefers-color-scheme: light) {
+        --bg-canvas: var(--bg-canvas-light);
+        --bg-surface: var(--bg-surface-light);
+        --bg-elevated: var(--bg-elevated-light);
+        --text-primary: var(--text-primary-light);
+        --text-muted: var(--text-muted-light);
+        --border-subtle: var(--border-subtle-light);
+        --brand-cyan: var(--brand-cyan-light);
+        --brand-emerald: var(--brand-emerald-light);
+        --brand-purple: var(--brand-purple-light);
+        --brand-amber: var(--brand-amber-light);
+        --brand-rose: var(--brand-rose-light);
+        --scroll-thumb: var(--scroll-thumb-light);
+        --scroll-track: var(--scroll-track-light);
+      }
+
+      @supports (color: light-dark(white, black)) {
+        --bg-canvas: light-dark(var(--bg-canvas-light), var(--bg-canvas-dark));
+        --bg-surface: light-dark(var(--bg-surface-light), var(--bg-surface-dark));
+        --bg-elevated: light-dark(var(--bg-elevated-light), var(--bg-elevated-dark));
+        --text-primary: light-dark(var(--text-primary-light), var(--text-primary-dark));
+        --text-muted: light-dark(var(--text-muted-light), var(--text-muted-dark));
+        --border-subtle: light-dark(var(--border-subtle-light), var(--border-subtle-dark));
+        --brand-cyan: light-dark(var(--brand-cyan-light), var(--brand-cyan-dark));
+        --brand-emerald: light-dark(var(--brand-emerald-light), var(--brand-emerald-dark));
+        --brand-purple: light-dark(var(--brand-purple-light), var(--brand-purple-dark));
+        --brand-amber: light-dark(var(--brand-amber-light), var(--brand-amber-dark));
+        --brand-rose: light-dark(var(--brand-rose-light), var(--brand-rose-dark));
+        --scroll-thumb: light-dark(var(--scroll-thumb-light), var(--scroll-thumb-dark));
+        --scroll-track: light-dark(var(--scroll-track-light), var(--scroll-track-dark));
+      }
+
+      accent-color: var(--brand-cyan);
+      scrollbar-width: thin;
+      scrollbar-color: var(--scroll-thumb) var(--scroll-track);
+    }
+
+    html.theme-light {
+      color-scheme: light;
+      --bg-canvas: var(--bg-canvas-light);
+      --bg-surface: var(--bg-surface-light);
+      --bg-elevated: var(--bg-elevated-light);
+      --text-primary: var(--text-primary-light);
+      --text-muted: var(--text-muted-light);
+      --border-subtle: var(--border-subtle-light);
+      --brand-cyan: var(--brand-cyan-light);
+      --brand-emerald: var(--brand-emerald-light);
+      --brand-purple: var(--brand-purple-light);
+      --brand-amber: var(--brand-amber-light);
+      --brand-rose: var(--brand-rose-light);
+      --scroll-thumb: var(--scroll-thumb-light);
+      --scroll-track: var(--scroll-track-light);
+    }
+
+    html.theme-dark {
+      color-scheme: dark;
+      --bg-canvas: var(--bg-canvas-dark);
+      --bg-surface: var(--bg-surface-dark);
+      --bg-elevated: var(--bg-elevated-dark);
+      --text-primary: var(--text-primary-dark);
+      --text-muted: var(--text-muted-dark);
+      --border-subtle: var(--border-subtle-dark);
+      --brand-cyan: var(--brand-cyan-dark);
+      --brand-emerald: var(--brand-emerald-dark);
+      --brand-purple: var(--brand-purple-dark);
+      --brand-amber: var(--brand-amber-dark);
+      --brand-rose: var(--brand-rose-dark);
+      --scroll-thumb: var(--scroll-thumb-dark);
+      --scroll-track: var(--scroll-track-dark);
+    }
+
+    @supports not (scrollbar-color: auto) {
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--scroll-thumb);
+        border-radius: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: var(--scroll-track);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+      background-image:
+        radial-gradient(circle at 18% 8%, rgba(34, 211, 238, 0.11), transparent 36%),
+        radial-gradient(circle at 82% 14%, rgba(167, 139, 250, 0.10), transparent 36%);
+    }
+
+    code, pre, .mono {
+      font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Sticky Glass Navigation */
+    header.navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      background: color-mix(in srgb, var(--bg-canvas) 82%, transparent);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 70px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 800;
+      font-size: 1.25rem;
+      letter-spacing: -0.02em;
+      text-decoration: none;
+      color: var(--text-primary);
+    }
+
+    .brand-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #06b6d4, #6366f1);
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      box-shadow: 0 0 24px rgba(34, 211, 238, 0.35);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 28px;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 500;
+      transition: color 0.15s ease;
+    }
+
+    .nav-links a:hover {
+      color: var(--brand-cyan);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: var(--brand-cyan);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #06b6d4, #3b82f6);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 8px 25px -6px rgba(6, 182, 212, 0.55);
+    }
+
+    /* Hero Section */
+    .hero {
+      padding: 72px 0 44px;
+      text-align: center;
+    }
+
+    .pill-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 16px;
+      border-radius: 999px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--brand-cyan);
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.4rem, 5.2vw, 4.3rem);
+      font-weight: 800;
+      letter-spacing: -0.035em;
+      line-height: 1.08;
+      max-width: 980px;
+      margin: 0 auto 22px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(90deg, #22d3ee 0%, #34d399 48%, #a78bfa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p.lead {
+      font-size: clamp(1.05rem, 1.8vw, 1.25rem);
+      color: var(--text-muted);
+      max-width: 780px;
+      margin: 0 auto 34px;
+    }
+
+    /* Install Command Bar */
+    .install-strip {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 48px;
+    }
+
+    .install-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      padding: 12px 20px;
+      border-radius: 12px;
+      background: #090d16;
+      color: #e2e8f0;
+      color-scheme: only dark;
+      border: 1px solid rgba(34, 211, 238, 0.35);
+      box-shadow: 0 14px 36px -10px rgba(6, 182, 212, 0.28);
+      font-size: 0.94rem;
+    }
+
+    .install-box .prompt {
+      color: #22d3ee;
+      user-select: none;
+    }
+
+    .copy-btn {
+      background: rgba(34, 211, 238, 0.14);
+      color: #22d3ee;
+      border: 1px solid rgba(34, 211, 238, 0.3);
+      padding: 5px 10px;
+      border-radius: 7px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .copy-btn:hover {
+      background: rgba(34, 211, 238, 0.25);
+    }
+
+    /* INTERACTIVE IN-BROWSER TUI SIMULATOR (Always Dark Terminal Context) */
+    .tui-showcase-wrapper {
+      margin: 0 auto 80px;
+    }
+
+    .tui-controls-hint {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .kbd {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      color: var(--brand-cyan);
+    }
+
+    .tui-window {
+      color-scheme: only dark;
+      background: #070b14;
+      color: #e2e8f0;
+      accent-color: #22d3ee;
+      border-radius: 16px;
+      border: 1px solid rgba(34, 211, 238, 0.32);
+      box-shadow:
+        0 28px 80px -16px rgba(0, 0, 0, 0.75),
+        0 0 40px -10px rgba(34, 211, 238, 0.22);
+      overflow: hidden;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .tui-titlebar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: #0f172a;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .window-dots {
+      display: flex;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .dot.red { background: #ef4444; }
+    .dot.yellow { background: #f59e0b; }
+    .dot.green { background: #10b981; }
+
+    .tui-telemetry-bar {
+      background: #111827;
+      padding: 8px 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12.5px;
+    }
+
+    .tui-grid {
+      display: grid;
+      grid-template-columns: 270px 1fr;
+      min-height: 510px;
+    }
+
+    @media (max-width: 920px) {
+      .tui-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .tui-sidebar {
+      border-right: 1px solid rgba(34, 211, 238, 0.25);
+      padding: 12px;
+      background: #080d19;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .tui-mod-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      width: 100%;
+      text-align: left;
+      padding: 7px 10px;
+      border-radius: 6px;
+      border: none;
+      background: transparent;
+      color: #cbd5e1;
+      font-family: inherit;
+      font-size: 12.5px;
+      cursor: pointer;
+      transition: background 0.12s ease;
+    }
+
+    .tui-mod-btn:hover {
+      background: rgba(34, 211, 238, 0.1);
+    }
+
+    .tui-mod-btn.active {
+      background: #1e3a5f;
+      color: #ffffff;
+      font-weight: 700;
+      border-left: 3px solid #22d3ee;
+    }
+
+    .tui-mod-key {
+      color: #22d3ee;
+      font-weight: 700;
+    }
+
+    .tui-ast-card {
+      margin-top: 16px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(167, 139, 250, 0.08);
+      border: 1px solid rgba(167, 139, 250, 0.28);
+      font-size: 11.5px;
+    }
+
+    .tui-main {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .tui-table-pane {
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(59, 130, 246, 0.28);
+      min-height: 205px;
+    }
+
+    .tui-pane-title {
+      color: #38bdf8;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 12.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    table.tui-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+    }
+
+    table.tui-table th {
+      text-align: left;
+      color: #64748b;
+      padding: 5px 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+      font-weight: 600;
+    }
+
+    table.tui-table tr.res-row {
+      cursor: pointer;
+    }
+
+    table.tui-table tr.res-row:hover {
+      background: rgba(34, 211, 238, 0.08);
+    }
+
+    table.tui-table tr.res-row.selected {
+      background: #172e4d;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    table.tui-table td {
+      padding: 7px 8px;
+    }
+
+    .badge-crit {
+      background: rgba(239, 68, 68, 0.22);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.45);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-high {
+      background: rgba(249, 115, 22, 0.2);
+      color: #fb923c;
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .badge-ok {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tui-inspector-pane {
+      padding: 12px 16px;
+      flex: 1;
+      background: #050811;
+    }
+
+    .inspector-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+    }
+
+    .insp-tab-btn {
+      background: transparent;
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      color: #94a3b8;
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .insp-tab-btn.active {
+      background: #1e3a5f;
+      color: #fff;
+      border-color: #22d3ee;
+      font-weight: 700;
+    }
+
+    .inspector-action-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-left: auto;
+    }
+
+    .action-pill {
+      background: rgba(16, 185, 129, 0.16);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 4px 10px;
+      border-radius: 5px;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .action-pill:hover {
+      background: rgba(16, 185, 129, 0.28);
+    }
+
+    .tui-statusbar {
+      background: #0f172a;
+      padding: 8px 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      color: #38bdf8;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Section Headers */
+    .section {
+      padding: 72px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto 48px;
+    }
+
+    .section-header h2 {
+      font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      margin-bottom: 12px;
+    }
+
+    .section-header p {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+
+    /* Bento Grid for 9 Modules */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+      gap: 20px;
+    }
+
+    .bento-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 24px;
+      transition: transform 0.18s ease, border-color 0.18s ease;
+    }
+
+    .bento-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--brand-cyan);
+    }
+
+    .bento-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .mod-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--bg-elevated);
+      color: var(--brand-cyan);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .bento-card h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .bento-card p {
+      color: var(--text-muted);
+      font-size: 0.94rem;
+      margin-bottom: 14px;
+    }
+
+    .bento-cmd {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: #090d16;
+      color: #34d399;
+      color-scheme: only dark;
+    }
+
+    /* IAM-Zero Spotlight Split */
+    .iam-zero-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    @media (max-width: 900px) {
+      .iam-zero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .code-panel {
+      color-scheme: only dark;
+      background: #080c17;
+      color: #e2e8f0;
+      border: 1px solid rgba(167, 139, 250, 0.35);
+      border-radius: 16px;
+      padding: 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+    }
+
+    /* Extended CLI Reference Table */
+    .cli-table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    table.ref-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    table.ref-table th, table.ref-table td {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    table.ref-table th {
+      background: var(--bg-elevated);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    footer {
+      padding: 48px 0;
+      border-top: 1px solid var(--border-subtle);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <header class="navbar">
+    <div class="container nav-inner">
+      <a href="#" class="brand">
+        <span class="brand-badge">⚡</span>
+        <span>lazygcp</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#simulator">Interactive TUI</a>
+        <a href="#modules">9 Modules</a>
+        <a href="#iam-zero">Live IAM &amp; SSH</a>
+        <a href="#cli-reference">Extended Help &amp; CLI</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="btn" id="themeToggleBtn" type="button" aria-label="Toggle color theme">
+          <span id="themeToggleLabel">Toggle Theme</span>
+        </button>
+        <a href="https://github.com/damiansztankowski/lazygcp" class="btn btn-primary" target="_blank" rel="noopener">
+          ★ Star on GitHub
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <main class="container">
+    <section class="hero">
+      <div class="pill-banner">
+        <span>⚡ Pure Go • 0 Dependencies • Embedded POSIX PTY SSH • Apache 2.0 License</span>
+      </div>
+      <h1>
+        The <span class="gradient-text">k9s &amp; lazydocker</span> Cockpit for Google Cloud.
+      </h1>
+      <p class="lead">
+        Stop waiting 15 seconds for the GCP Console to load tabs. Open <strong>stateful inline SSH terminals</strong> inside the TUI,
+        audit <strong>live Project IAM &amp; Security bindings</strong>, track <strong>Cloud Billing API v1 burn rates</strong>,
+        and export <strong>1:1 Reverse-Terraform HCL</strong>—all in one blazing-fast terminal UI.
+      </p>
+
+      <div class="install-strip">
+        <div class="install-box mono">
+          <span class="prompt">$</span>
+          <span id="installCmd">git clone https://github.com/damiansztankowski/lazygcp &amp;&amp; cd lazygcp &amp;&amp; make build &amp;&amp; ./lazygcp</span>
+          <button class="copy-btn" type="button" onclick="copyInstall()">Copy</button>
+        </div>
+      </div>
+
+      <!-- PLAYABLE IN-BROWSER TUI SIMULATOR -->
+      <div id="simulator" class="tui-showcase-wrapper">
+        <div class="tui-controls-hint">
+          <div>
+            <strong>🎮 Interactive Live TUI Preview:</strong> Click any module <span class="kbd">[1]</span>–<span class="kbd">[9]</span>, click rows, switch Inspector tabs <span class="kbd">[v/z/g/t/a]</span>, or press keys <span class="kbd">1-9</span>, <span class="kbd">z</span>, <span class="kbd">t</span>, <span class="kbd">r</span>, <span class="kbd">f</span> on your keyboard!
+          </div>
+          <div>
+            Project: <span class="kbd">acme-fintech-prod-01</span> <span class="kbd">[P] Switch</span>
+          </div>
+        </div>
+
+        <div class="tui-window">
+          <div class="tui-titlebar">
+            <div class="window-dots">
+              <span class="dot red"></span>
+              <span class="dot yellow"></span>
+              <span class="dot green"></span>
+            </div>
+            <div style="color:#94a3b8; font-size:12px;">lazygcp — Live Google Cloud Cockpit, Inline SSH PTY &amp; Cloud Billing FinOps</div>
+            <div style="color:#22d3ee; font-size:12px;">v0.4.0</div>
+          </div>
+
+          <div class="tui-telemetry-bar">
+            <div>
+              <strong style="color:#22d3ee;">⚡ lazygcp</strong> │ Project: <strong style="color:#fbbf24;" id="tuiProj">acme-fintech-prod-01</strong> (4 avail — Press <strong style="color:#34d399;">[P]</strong>) │ Region: <span style="color:#e2e8f0;">europe-west1</span> │ Posture: <strong id="tuiGrade" style="color:#f87171;">D+ (54/100)</strong>
+            </div>
+            <div>
+              Est. Burn: <strong style="color:#fff;" id="tuiBurn">$12,422/mo</strong> │ Reclaimable Waste: <strong style="color:#34d399;" id="tuiWaste">-$8,678/mo</strong> │ IAM Excess Perms: <strong style="color:#f87171;" id="tuiExcess">6,838</strong>
+            </div>
+          </div>
+
+          <div class="tui-grid">
+            <!-- Left Sidebar -->
+            <div class="tui-sidebar">
+              <div id="tuiSidebarList"></div>
+              <div class="tui-ast-card">
+                <div style="color:#a78bfa; font-weight:700; margin-bottom:4px;">◆ PROJECT RISK POSTURE</div>
+                <div><strong style="color:#f87171;">CRITICAL</strong> : 7 live resources</div>
+                <div><strong style="color:#fb923c;">HIGH</strong> &nbsp;&nbsp;&nbsp;&nbsp;: 3 live resources</div>
+                <div><strong style="color:#fbbf24;">MEDIUM</strong> &nbsp;&nbsp;: 2 live resources</div>
+                <div style="color:#94a3b8; margin-top:6px; border-top:1px solid rgba(148,163,184,0.16); padding-top:6px;">
+                  <strong style="color:#22d3ee;">⌘ QUICK ACTIONS</strong><br/>
+                  [s] Inline SSH Terminal<br/>
+                  [P] Switch GCP Project<br/>
+                  [b] Emergency FW Block<br/>
+                  [t] 1:1 Live Terraform HCL
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Pane -->
+            <div class="tui-main">
+              <div class="tui-table-pane">
+                <div class="tui-pane-title">
+                  <span id="tuiModuleTitle">[1 :run] Cloud Run &amp; Functions</span>
+                  <span style="color:#94a3b8; font-size:11.5px;">Click a resource row to inspect</span>
+                </div>
+                <table class="tui-table">
+                  <thead>
+                    <tr>
+                      <th>RESOURCE NAME</th>
+                      <th>KIND / ROLE</th>
+                      <th>REGION / SCOPE</th>
+                      <th>POWER STATE / POSTURE</th>
+                      <th>MONTHLY COST (SAVINGS)</th>
+                      <th>RISK</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tuiTableBody"></tbody>
+                </table>
+              </div>
+
+              <div class="tui-inspector-pane">
+                <div class="inspector-tabs">
+                  <button class="insp-tab-btn active" onclick="setInspTab('overview')" id="tab-overview">[v] Overview &amp; Actions</button>
+                  <button class="insp-tab-btn" onclick="setInspTab('iamzero')" id="tab-iamzero">[s / y / z] Deep View (SSH / YAML / IAM)</button>
+                  <button class="insp-tab-btn" onclick="setInspTab('topology')" id="tab-topology">[g] Topology</button>
+                  <button class="insp-tab-btn" onclick="setInspTab('terraform')" id="tab-terraform">[t] 1:1 Live Terraform</button>
+                  <button class="insp-tab-btn" onclick="setInspTab('logs')" id="tab-logs">[a] Cloud Logs</button>
+
+                  <div class="inspector-action-bar">
+                    <button class="action-pill" onclick="triggerRollbackSim()">[r] 1-Key Rollback</button>
+                    <button class="action-pill" onclick="triggerFixSim()">[f] Apply Live Fix</button>
+                  </div>
+                </div>
+                <div id="tuiInspectorContent" style="line-height:1.55; font-size:12.5px; white-space:pre-wrap;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tui-statusbar">
+            <div id="tuiStatusMsg">STATUS: Connected to live gcloud project. Click any module [1-9] or Inspector tab [v/z/g/t/a] to explore.</div>
+            <div style="color:#94a3b8;">[1-9] Module  [s/S] Direct SSH / IAP Tunnel  [P] Project  [b] Block FW  [t/w] 1:1 Terraform  [?] Help</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 9 Modules Bento Grid -->
+    <section id="modules" class="section">
+      <div class="section-header">
+        <h2>9 Live GCP Modules. Zero Browser Tabs.</h2>
+        <p>Initialized with a 25 FPS animated telemetry radar, every module queries your active <code>gcloud</code> project in parallel and pairs deep security &amp; Cloud Billing telemetry with 1-keystroke actions.</p>
+      </div>
+
+      <div class="bento-grid">
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[1] :run</span>
+            <span style="color:var(--brand-cyan); font-weight:700;">Cloud Run &amp; Functions</span>
+          </div>
+          <h3>Service YAML, Shell &amp; 1-Key Rollback</h3>
+          <p>Inspect live revision traffic splits, view full Knative <code>service.yaml</code> (<code>[y]</code>), unmask env secrets (<code>[x]</code>), open an interactive container shell (<code>[s]</code>), and roll back 503 outages with <code>[r]</code>.</p>
+          <div class="bento-cmd">$ lazygcp run</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[2] :iam</span>
+            <span style="color:var(--brand-purple); font-weight:700;">IAM Policies &amp; Roles</span>
+          </div>
+          <h3>Live Project IAM &amp; Security Assessment</h3>
+          <p>Audits live <code>getIamPolicy</code> bindings and provisioned Service Accounts in your active GCP project—flagging <code>roles/owner</code>, <code>roles/editor</code>, <code>allUsers</code>, and Default Compute SAs with 1-key remediation.</p>
+          <div class="bento-cmd">$ lazygcp iam -p my-gcp-project</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[3] :gke</span>
+            <span style="color:var(--brand-emerald); font-weight:700;">GKE &amp; Compute Engine VMs</span>
+          </div>
+          <h3>Direct SSH, IAP Tunnel &amp; Best-Practice Auto-Setup</h3>
+          <p>Choose between <strong>Direct SSH</strong> and <strong>IAP Tunnel SSH</strong> (<code>[s]</code> / <code>[S]</code>) inside the embedded POSIX PTY &amp; VT100 terminal. If IAP isn't configured on the VPC, <code>lazygcp</code> prompts to auto-configure IAP per Google Cloud Best Practices (API, <code>35.235.240.0/20</code> firewall rule &amp; IAM role).</p>
+          <div class="bento-cmd">$ lazygcp gke</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[4] :sql</span>
+            <span style="color:var(--brand-amber); font-weight:700;">Cloud SQL &amp; GCS Storage</span>
+          </div>
+          <h3>Inline SQL Console &amp; Bucket File Browser</h3>
+          <p>Execute interactive SQL queries and browse GCS bucket objects (<code>gcloud storage ls -l</code>) directly in the bottom pane (<code>[s]</code> / <code>[e]</code>), audit Public Access Prevention, and launch Cloud SQL Auth Proxy (<code>[p]</code>).</p>
+          <div class="bento-cmd">$ lazygcp sql</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[5] :sec</span>
+            <span style="color:var(--brand-cyan); font-weight:700;">Secret Manager &amp; KMS Vault</span>
+          </div>
+          <h3>Rotation Policy Auditor &amp; Audited Peek</h3>
+          <p>Lists all Secret Manager secrets across your project, flags unrotated credentials, tracks service consumers, and supports temporary live payload unmasking with <code>[x]</code>.</p>
+          <div class="bento-cmd">$ lazygcp sec</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[6] :net</span>
+            <span style="color:var(--brand-rose); font-weight:700;">VPC, NAT &amp; Firewalls</span>
+          </div>
+          <h3>1-Key Emergency Firewall Block (<code>[b]</code>)</h3>
+          <p>Highlights dangerous <code>0.0.0.0/0</code> open-world ingress firewall rules, displays exposed ports and target tags, and lets you immediately block/disable a rule in live GCP with <code>[b]</code>.</p>
+          <div class="bento-cmd">$ lazygcp net</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[7] :ai</span>
+            <span style="color:var(--brand-purple); font-weight:700;">Vertex AI &amp; GenAI Guardrails</span>
+          </div>
+          <h3>Gemini Token FinOps &amp; Model Armor</h3>
+          <p>Discovers enabled Vertex AI / Gemini APIs, calculates Context Caching token savings, verifies Model Armor prompt-injection templates, and exports 1:1 <code>google_project_service</code> Terraform.</p>
+          <div class="bento-cmd">$ lazygcp ai</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[8] :cost</span>
+            <span style="color:var(--brand-emerald); font-weight:700;">FinOps &amp; Cloud Billing</span>
+          </div>
+          <h3>Cloud Billing API v1 &amp; Spend Breakdown</h3>
+          <p>Queries the live Cloud Billing API v1 for your linked Billing Account, Daily/Monthly/Annual Burn Rate, visual Spend Breakdown across GCP Service Families, and 1-key unattached disk cleanup.</p>
+          <div class="bento-cmd">$ lazygcp cost</div>
+        </div>
+
+        <div class="bento-card">
+          <div class="bento-top">
+            <span class="mod-tag">[9] :diff</span>
+            <span style="color:var(--brand-amber); font-weight:700;">Cloud Audit Time-Machine</span>
+          </div>
+          <h3><code>git diff</code> + Full Audit JSON &amp; Revert</h3>
+          <p>Streams live <code>cloudaudit.googleapis.com</code> events showing WHO changed WHAT and WHEN, toggles full raw Audit Log JSON (<code>[e]</code>), and executes context-aware rollback commands (<code>[r]</code>).</p>
+          <div class="bento-cmd">$ lazygcp rewind</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Live IAM & 1:1 Reverse-Terraform Deep Dive -->
+    <section id="iam-zero" class="section">
+      <div class="section-header">
+        <h2>🛡️ Live Project IAM Audit &amp; 1:1 Reverse-Terraform</h2>
+        <p>Connect to any GCP project and let <code>lazygcp</code> inspect live IAM bindings, expose dangerous root permissions, and reverse-engineer 1:1 Terraform HCL mapped directly from live API state.</p>
+      </div>
+
+      <div class="iam-zero-grid">
+        <div class="code-panel">
+          <div style="color:#f87171; font-weight:700; margin-bottom:12px;">❌ DETECTED LIVE IN PROJECT: Over-Privileged Default SA (6,842 Permissions)</div>
+<pre style="color:#cbd5e1; line-height:1.6;"># 1:1 Reverse-Engineered from cloudresourcemanager:getIamPolicy
+# Import: terraform import google_project_iam_member.default_sa ...
+
+resource "google_project_iam_member" "legacy_editor" {
+  project = "acme-fintech-prod-01"
+  role    = "roles/editor" # 🔥 6,842 permissions!
+  member  = "serviceAccount:104928-compute@developer..."
+}
+
+# Dangerous Capabilities Exposed Right Now:
+# ✗ secretmanager.versions.access (Read all secrets)
+# ✗ storage.objects.delete (Wipe all GCS buckets)
+# ✗ iam.serviceAccountKeys.create (Mint persistent keys)
+# ✗ compute.instances.delete (Destroy production VMs)</pre>
+        </div>
+
+        <div class="code-panel" style="border-color: rgba(52, 211, 153, 0.4);">
+          <div style="color:#34d399; font-weight:700; margin-bottom:12px;">✅ RECOMMENDED BY <code>lazygcp iam</code>: Scoped Workload Role &amp; 1:1 VM HCL</div>
+<pre style="color:#cbd5e1; line-height:1.6;">resource "google_project_iam_custom_role" "workload_minimal_role" {
+  project     = "acme-fintech-prod-01"
+  role_id     = "lazygcpMinimalWorkload"
+  title       = "Least-Privilege Workload Runtime Role"
+  permissions = [
+    "cloudsql.instances.connect",
+    "secretmanager.versions.access",
+    "logging.logEntries.create",
+    "monitoring.timeSeries.create",
+  ]
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Extended CLI & Keybindings Reference -->
+    <section id="cli-reference" class="section">
+      <div class="section-header">
+        <h2>Extended CLI &amp; Keyboard Reference</h2>
+        <p>Designed for terminal power users. Run <code>lazygcp --help</code> in your shell or press <code>?</code> inside the TUI for the 3-page interactive manual.</p>
+      </div>
+
+      <div class="cli-table-wrap">
+        <table class="ref-table">
+          <thead>
+            <tr>
+              <th>Command / Keybinding</th>
+              <th>Category</th>
+              <th>Description &amp; Example</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="mono" style="color:var(--brand-cyan); font-weight:600;">lazygcp</td>
+              <td>CLI Launch</td>
+              <td>Launches the animated initialization radar, auto-detects your active <code>gcloud</code> project, and opens the 9-module live TUI.</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--brand-cyan); font-weight:600;">lazygcp -p &lt;project-id&gt;</td>
+              <td>CLI Flag</td>
+              <td>Connects directly to a specific GCP project ID (e.g. <code>lazygcp -p prod-fintech-01</code>).</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--brand-cyan); font-weight:600;">lazygcp [run|iam|gke|sql|sec|net|ai|cost|rewind]</td>
+              <td>Direct Module</td>
+              <td>Boots straight into the specified live cockpit module (e.g. <code>lazygcp iam</code>, <code>lazygcp gke</code>, or <code>lazygcp cost</code>).</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--brand-emerald); font-weight:600;">s / Enter (Ctrl+F / Esc)</td>
+              <td>Inline PTY SSH</td>
+              <td>Opens a stateful POSIX PTY &amp; VT100 SSH session inside the TUI for running Compute VMs (blocked when VM is <code>POWERED OFF</code>). Press <code>Ctrl+F</code> for full-height mode or <code>Esc</code> to detach.</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--brand-amber); font-weight:600;">P (Shift+p) / R (Shift+r)</td>
+              <td>Project Switcher</td>
+              <td>Opens the Interactive GCP Project Selector Modal with live search (<code>P</code>) or forces a live HTTP/2 API refresh (<code>R</code>).</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--brand-purple); font-weight:600;">v / y / z / g / t / a (or Tab)</td>
+              <td>Context Inspector</td>
+              <td>Switch bottom inspector between Overview (<code>v</code>), Cloud Run YAML (<code>y</code>), IAM Blast-Radius (<code>z</code>), Topology (<code>g</code>), 1:1 Terraform (<code>t</code>), and Logs (<code>a</code>).</td>
+            </tr>
+            <tr>
+              <td class="mono" style="color:var(--brand-emerald); font-weight:600;">b / r / f / p / w / x</td>
+              <td>1-Key Actions</td>
+              <td>Emergency Block Firewall Rule (<code>b</code>), Rollback traffic or Audit event (<code>r</code>), Apply IAM/FinOps fix (<code>f</code>), Start SQL/IAP Proxy (<code>p</code>), Export <code>.tf</code> file (<code>w</code>), Unmask secret (<code>x</code>).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Built with ❤️ in pure Go for the Google Cloud, SRE &amp; DevSecOps Community • <strong>lazygcp v0.4.0</strong> • Licensed under the <strong>Apache License 2.0</strong></p>
+    </div>
+  </footer>
+
+  <script>
+    // Interactive TUI Simulator State
+    const MODULES = [
+      { key: "1", alias: "run", title: "Cloud Run & Functions", subtitle: "Services, Functions, Env Vars, Live YAML [y] & Shell [s]" },
+      { key: "2", alias: "iam", title: "IAM Policies & Roles", subtitle: "Live Project Security Audit, Who Has Access & Fix [f]" },
+      { key: "3", alias: "gke", title: "GKE & Compute VMs", subtitle: "VM Power States, Inline PTY SSH [s] & Remote Exec [e]" },
+      { key: "4", alias: "sql", title: "Cloud SQL & Storage", subtitle: "Run SQL Queries [e], Browse Bucket Files [e] & Proxy [p]" },
+      { key: "5", alias: "sec", title: "Secrets & KMS Vault", subtitle: "Secret Manager Versions, Rotation Policy & Live Unmask [x]" },
+      { key: "6", alias: "net", title: "VPC, NAT & Firewalls", subtitle: "Firewall Rules, Immediate Block [b], IAP Lock [f] & VPCs" },
+      { key: "7", alias: "ai",  title: "Vertex AI & GenAI", subtitle: "Enabled AI APIs, Gemini Token Burn & Model Armor" },
+      { key: "8", alias: "cost", title: "FinOps & Cloud Billing", subtitle: "Cloud Billing API v1 Burn Rate, Spend Breakdown & Waste" },
+      { key: "9", alias: "diff", title: "Audit Time-Machine", subtitle: "Who Changed What, Full Audit JSON [e] & Revert Action [r]" }
+    ];
+
+    const DATA = {
+      "1": [
+        {
+          name: "checkout-payment-api", kind: "CloudRun v2", region: "europe-west1", status: "DEGRADED (503s)", cost: "$1,420 (-$890)", risk: "CRIT",
+          overview: `📌 Summary : High 503 rate after rev-0042 deploy • DB connection pool exhaustion + Default Compute SA\n🌐 Endpoint: https://checkout-payment-api-ew1a.a.run.app   🔑 Identity: 104928-compute@developer.gserviceaccount.com\n\n🚦 CLOUD RUN REVISION TRAFFIC SPLIT (Press [r] for 1-keystroke instant rollback):\n  [################----]  80%  checkout-payment-api-00042-bad   DEGRADED (503 Pool Exhausted)\n  [####----------------]  20%  checkout-payment-api-00041-ok    HEALTHY (41ms p99)\n\n🔐 ENVIRONMENT & SECRET BINDINGS (Press [x] to unmask, [y] for Service YAML):\n  [LEAKED] STRIPE_LIVE_SECRET_KEY = sk_live_**************** (Plaintext secret in container env!)`,
+          iamzero: `📄 LIVE CLOUD RUN SERVICE YAML MANIFEST [y] — checkout-payment-api:\napiVersion: serving.knative.dev/v1\nkind: Service\nmetadata:\n  name: checkout-payment-api\n  namespace: acme-fintech-prod-01\nspec:\n  template:\n    metadata:\n      annotations:\n        autoscaling.knative.dev/minScale: "15"\n        autoscaling.knative.dev/maxScale: "250"\n    spec:\n      serviceAccountName: 104928-compute@developer.gserviceaccount.com`,
+          topology: `🗺️ BLAST-RADIUS & DEPENDENCY TOPOLOGY:\n  [Internet 0.0.0.0/0] ──► [Cloud Run: checkout-payment-api]\n                               ├── 80% ──► rev-00042-bad (14.8% 503 Errors)\n                               ├── Identity: Default Compute SA (roles/editor)\n                               └── ──► [Cloud SQL: prod-orders-pg16] (500/500 Connections Full!)\n\n$ gcloud run services update-traffic checkout-payment-api --to-revisions=checkout-payment-api-00041-ok=100`,
+          terraform: `# 1:1 Reverse-Engineered Terraform from Live GCP State\nresource "google_cloud_run_v2_service" "checkout_payment_api" {\n  name     = "checkout-payment-api"\n  location = "europe-west1"\n  ingress  = "INGRESS_TRAFFIC_INTERNAL_LOAD_BALANCER"\n  template {\n    scaling { min_instance_count = 2  max_instance_count = 40 }\n  }\n}`,
+          logs: `🤖 GEMINI SRE ROOT-CAUSE ADVISOR:\n  Revision 00042 raised DB_MAX_CONNS=50 across 250 max instances (12,500 > Cloud SQL 500 limit).\n  Click [r] 1-Key Rollback above to shift 100% traffic to rev-00041-ok!\n\n📜 LIVE CLOUD LOGGING STREAM:\n  19:01:12 [ERROR   ] (rev-00042) FATAL: remaining connection slots are reserved (SQLSTATE 53300)\n  19:01:14 [CRITICAL] (run-http)  POST /v1/checkout/charge 503 Service Unavailable (2840ms)`
+        },
+        {
+          name: "pubsub-webhook-ingestor", kind: "CloudRun v2", region: "europe-west1", status: "RETRY STORM ($)", cost: "$2,340 (-$1,980)", risk: "HIGH",
+          overview: `📌 Summary : Infinite Pub/Sub NACK retry loop without Dead-Letter Topic • Burning $78/day in wasted CPU\n📊 Metrics : 3,100 req/s (94.2% Poison-Pill Retries) • Dead-Letter Queue: NONE`,
+          iamzero: `📄 Service YAML: containerConcurrency=80, timeoutSeconds=300, image=ew1-docker.pkg.dev/acme/webhooks:v1.9.0`,
+          topology: `  [Pub/Sub: stripe-events] ──(No DLQ: 4,813 retries!)──► [Cloud Run: pubsub-webhook-ingestor]`,
+          terraform: `resource "google_pubsub_subscription" "stripe_events_sub" {\n  name  = "stripe-events-sub"\n  dead_letter_policy {\n    dead_letter_topic     = google_pubsub_topic.dlq.id\n    max_delivery_attempts = 5\n  }\n}`,
+          logs: `  19:01:10 [ERROR] Unmarshal error on msgID=88192019: unexpected EOF (DeliveryAttempt: 4,813)`
+        }
+      ],
+      "2": [
+        {
+          name: "🛡️ Project Security & IAM Assessment (acme-fintech-prod-01)", kind: "Live IAM & Security Audit", region: "Project-Wide", status: "3 ROOT / 1 PUBLIC BINDINGS", cost: "$0/mo", risk: "CRIT",
+          overview: `📌 Live IAM Audit for 'acme-fintech-prod-01': 18 total bindings • 1 Owner • 2 Editor • 1 Public (allUsers) • 1 Default Compute SA • 6 Service Accounts\n   • Audited GCP Project       : acme-fintech-prod-01\n   • Root Primitive Grants     : 1 roles/owner • 2 roles/editor (High Blast Radius)\n   • Public Exposure           : 1 binding to allUsers / allAuthenticatedUsers\n   • Default Compute/App SAs   : 1 default service account active`,
+          iamzero: `◆ LIVE PROJECT IAM & SECURITY POSTURE:\n  • 1 principal holds roles/owner (7,410 permissions)\n  • 2 principals hold roles/editor (6,842 permissions each)\n  • Select any binding below to inspect WHO holds it, WHAT dangerous capabilities it exposes, and press [f] to revoke or [t] for 1:1 Terraform.`,
+          topology: `  [Project: acme-fintech-prod-01] ──► 18 Live IAM Bindings & 6 Service Accounts`,
+          terraform: `resource "google_project_iam_custom_role" "workload_minimal_role" {\n  project     = "acme-fintech-prod-01"\n  role_id     = "lazygcpMinimalWorkload"\n  permissions = ["logging.logEntries.create", "secretmanager.versions.access", "cloudsql.instances.connect"]\n}`,
+          logs: `  Fetched live from cloudresourcemanager.googleapis.com/v1/projects/acme-fintech-prod-01:getIamPolicy`
+        },
+        {
+          name: "104928-compute@developer.gserviceaccount.com", kind: "Project Editor (6,842 perms)", region: "Project-Wide", status: "PROJECT EDITOR (6,842 perms)", cost: "$0/mo", risk: "CRIT",
+          overview: `📌 [Default Compute Engine Service Account] holds roles/editor — Grants read, modify, create, and delete access across almost every service in the project (6,842 permissions).`,
+          iamzero: `◆ IAM IDENTITY, ROLE CAPABILITIES & BLAST-RADIUS INSPECTOR:\n  1. Who (Principal)     : 104928-compute@developer.gserviceaccount.com\n  2. Granted GCP Role    : roles/editor (6,842 permissions)\n  3. Dangerous Capabilities Exposed Right Now:\n     ✗ secretmanager.versions.access (Read all Secret Manager secrets)\n     ✗ storage.objects.delete (Wipe all GCS buckets)\n     ✗ iam.serviceAccountKeys.create (Mint persistent SA keys)`,
+          topology: `  [Default Compute SA] ──► Can modify/delete 100% of resources in project`,
+          terraform: `# 1:1 Reverse-Engineered Terraform from Live GCP IAM Policy\nresource "google_project_iam_member" "default_compute_editor" {\n  project = "acme-fintech-prod-01"\n  role    = "roles/editor"\n  member  = "serviceAccount:104928-compute@developer.gserviceaccount.com"\n}`,
+          logs: `  Audit Log: Principal authenticated via metadata server 2s ago.`
+        }
+      ],
+      "3": [
+        {
+          name: "legacy-jumpbox-vm-01", kind: "Compute Engine VM", region: "europe-west1-b", status: "POWERED ON (RUNNING)", cost: "$195 (-$195)", risk: "CRIT",
+          overview: `📌 POWERED ON (RUNNING) • Public IP 34.77.118.42 • Port 22 open to 0.0.0.0/0 • Press [s] for Inline SSH\n   • Power State  : POWERED ON (RUNNING) — Inline SSH Ready\n   • Machine Type : n2-standard-4 (4 vCPU, 16 GB RAM)\n   • External IP  : 34.77.118.42`,
+          iamzero: `🟢 LIVE SSH / SHELL TERMINAL (legacy-jumpbox-vm-01) — All keys go to remote PTY │ [Ctrl+F] Toggle Full-Height │ [Esc / Ctrl+]] Detach\n──────────────────────────────────────────────────────────────────────────────────────────\n⚡ Connecting to Compute VM legacy-jumpbox-vm-01 (europe-west1-b) in project acme-fintech-prod-01...\nLinux legacy-jumpbox-vm-01 6.1.0-27-cloud-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.115-1 x86_64\nsre@legacy-jumpbox-vm-01:~$ uptime\n 07:40:12 up 42 days, 14:18,  1 user,  load average: 0.04, 0.02, 0.00\nsre@legacy-jumpbox-vm-01:~$ █`,
+          topology: `  [Public IP 34.77.118.42] ──► [Compute VM: legacy-jumpbox-vm-01 (POWERED ON)]`,
+          terraform: `# 1:1 Reverse-Engineered Terraform from Live Compute Engine VM\n# Import: terraform import google_compute_instance.legacy_jumpbox_vm_01 projects/acme-fintech-prod-01/zones/europe-west1-b/instances/legacy-jumpbox-vm-01\nresource "google_compute_instance" "legacy_jumpbox_vm_01" {\n  name         = "legacy-jumpbox-vm-01"\n  machine_type = "n2-standard-4"\n  zone         = "europe-west1-b"\n}`,
+          logs: `  VM is POWERED ON (RUNNING). Press [s] to attach to the stateful in-TUI POSIX PTY SSH session.`
+        },
+        {
+          name: "staging-batch-worker-02", kind: "Compute Engine VM", region: "europe-west1-b", status: "POWERED OFF (STOPPED)", cost: "$18 (-$18)", risk: "OK",
+          overview: `📌 POWERED OFF (STOPPED) • Inline SSH disabled while VM is powered off • Boot disk still billed ($18/mo)\n   • Power State  : POWERED OFF (STOPPED) — SSH Disabled (Start VM first)\n   • Machine Type : e2-standard-4\n   • Action [f/r] : $ gcloud compute instances start staging-batch-worker-02 --zone=europe-west1-b`,
+          iamzero: `⚠️ SSH TERMINAL DISABLED: Compute VM 'staging-batch-worker-02' is currently POWERED OFF (STOPPED).\n   Press [f] or [r] to Power On ('gcloud compute instances start staging-batch-worker-02') before opening an SSH session.`,
+          topology: `  [Compute VM: staging-batch-worker-02 (POWERED OFF / TERMINATED)]`,
+          terraform: `resource "google_compute_instance" "staging_batch_worker_02" {\n  name           = "staging-batch-worker-02"\n  machine_type   = "e2-standard-4"\n  zone           = "europe-west1-b"\n  desired_status = "TERMINATED"\n}`,
+          logs: `  Instance terminated 3 days ago; persistent boot disk still attached.`
+        },
+        {
+          name: "gke-prod-eu-west1", kind: "GKE Cluster", region: "europe-west1-b", status: "RUNNING (12 nodes)", cost: "$1,890 (-$740)", risk: "HIGH",
+          overview: `📌 GKE v1.31.2 • 12x n2-standard-8 nodes (Avg CPU request: 18%) • Master Authorized Networks DISABLED.`,
+          iamzero: `🟢 LIVE GKE KUBECTL SHELL (gke-prod-eu-west1):\n$ kubectl get nodes -o wide\nNAME                                            STATUS   ROLES    AGE   VERSION\ngke-gke-prod-eu-west1-default-pool-8a91bc-1x2k   Ready    <none>   19d   v1.31.2-gke.1100`,
+          topology: `  [Public Control Plane 0.0.0.0/0] ──► [GKE: gke-prod-eu-west1 (12 nodes)]`,
+          terraform: `resource "google_container_cluster" "gke_prod" {\n  name             = "gke-prod-eu-west1"\n  location         = "europe-west1-b"\n  initial_node_count = 12\n}`,
+          logs: `  Press [s] to open an interactive kubectl shell directly inside lazygcp.`
+        }
+      ],
+      "4": [
+        {
+          name: "gs://acme-customer-kyc-passports", kind: "GCS Bucket", region: "EU", status: "PUBLIC (allUsers)!", cost: "$410 (-$185)", risk: "CRIT",
+          overview: `📌 Public Access Prevention not enforced • 14 TB of objects older than 2 years without Archive Lifecycle rule.`,
+          iamzero: `⚡ Live GCS Bucket Shell (gs://acme-customer-kyc-passports) — Listing objects:\n  2026-10-14T11:20:04Z   1.8 MiB  gs://acme-customer-kyc-passports/kyc-2026-9910.pdf\n  2026-10-14T11:22:19Z   2.4 MiB  gs://acme-customer-kyc-passports/kyc-2026-9911.pdf`,
+          topology: `  [Internet allUsers] ──► [gs://acme-customer-kyc-passports (48,912 PDFs)]`,
+          terraform: `resource "google_storage_bucket" "kyc" {\n  name                        = "acme-customer-kyc-passports"\n  location                    = "EU"\n  public_access_prevention    = "enforced"\n  uniform_bucket_level_access = true\n}`,
+          logs: `  GDPR Art. 32 & CIS 5.1 Alert: Enforce public_access_prevention immediately.`
+        }
+      ],
+      "5": [
+        {
+          name: "stripe-live-webhook-secret", kind: "Secret Manager", region: "global", status: "UNROTATED (412d)", cost: "$1/mo", risk: "HIGH",
+          overview: `📌 Secret version v1 created 412 days ago • Automatic rotation policy not configured • Press [x] to unmask live payload.`,
+          iamzero: `◆ Accessed by 3 Service Accounts (2 with roles/editor).`,
+          topology: `  [Secret: stripe-live-webhook-secret] ──► [checkout-payment-api]`,
+          terraform: `resource "google_secret_manager_secret" "stripe_webhook" {\n  secret_id = "stripe-live-webhook-secret"\n  rotation { rotation_period = "7776000s" }\n}`,
+          logs: `  Last secretmanager.versions.access event: 4s ago.`
+        }
+      ],
+      "6": [
+        {
+          name: "allow-ssh-world-0-0-0-0", kind: "VPC Firewall (INGRESS)", region: "prod-vpc", status: "OPEN TO WORLD (0.0.0.0/0)", cost: "$0/mo", risk: "CRIT",
+          overview: `📌 INGRESS ALLOW on tcp:22, tcp:3389 from 0.0.0.0/0 • Press [b] to Immediately Quarantine & Block (--disabled)\n   • Network          : prod-vpc\n   • Allowed Ports    : tcp:22, tcp:3389\n   • Source CIDRs     : 0.0.0.0/0 (Public Internet!)\n   • Emergency Action : Press [b] to immediately disable this firewall rule in GCP`,
+          iamzero: `◆ Network Perimeter Check: Press [b] to immediately block/disable this rule, or [f] to restrict source_ranges to Google IAP (35.235.240.0/20).`,
+          topology: `  [0.0.0.0/0] ──(TCP:22,3389 OPEN)──► [VPC: prod-vpc]`,
+          terraform: `resource "google_compute_firewall" "allow_ssh_world" {\n  name          = "allow-ssh-world-0-0-0-0"\n  network       = "prod-vpc"\n  source_ranges = ["35.235.240.0/20"]\n}`,
+          logs: `  1,420 blocked/attempted SSH scans on port 22 in the last hour.`
+        }
+      ],
+      "7": [
+        {
+          name: "aiplatform.googleapis.com", kind: "Enabled AI API", region: "europe-west1", status: "ENABLED", cost: "$480/mo", risk: "OK",
+          overview: `📌 Vertex AI API active • Tip: Enable Gemini Context Caching for static system prompts >32k tokens to save 75%.`,
+          iamzero: `◆ Required runtime permission: aiplatform.endpoints.predict`,
+          topology: `  [Cloud Run App] ──► [Vertex AI Gemini 2.5 Endpoint]`,
+          terraform: `resource "google_project_service" "vertex_ai" {\n  project = "acme-fintech-prod-01"\n  service = "aiplatform.googleapis.com"\n}`,
+          logs: `  aiplatform.endpoints.predict p95 latency: 410ms.`
+        }
+      ],
+      "8": [
+        {
+          name: "💳 Cloud Billing (Acme Corp Production Billing)", kind: "Cloud Billing Account", region: "global (USD)", status: "ACTIVE ($12,422/mo)", cost: "$12,422/mo Total", risk: "OK",
+          overview: `💳 CLOUD BILLING & FINOPS PERSPECTIVE FOR PROJECT 'acme-fintech-prod-01'\n   • Billing Account & Status  : Acme Corp Production Billing (billingAccounts/01A8F2-99C4E1-48B102) — ENABLED\n   • Run-Rate Forecast         : $414.07 / day  │  $12,422.20 / month  │  $149,066 / year (USD)\n   • Reclaimable Idle Savings  : -$8,678.00 / month (-$104,136 / year)\n\n📊 PROJECT SPEND BREAKDOWN BY GCP SERVICE FAMILY:\n   • Cloud Run, Functions & AI  [███████████████░░░░░░░░░]  64%  $8,619.20/mo ($103,430/yr)\n   • Compute Engine VMs & GKE   [████░░░░░░░░░░░░░░░░░░░░]  17%  $2,103.00/mo ($25,236/yr)\n   • Cloud SQL & GCS Storage    [███░░░░░░░░░░░░░░░░░░░░░]  11%  $1,390.00/mo ($16,680/yr)\n   • Unattached Disks / Waste   [██░░░░░░░░░░░░░░░░░░░░░░]   9%  $1,120.00/mo ($13,440/yr)`,
+          iamzero: `◆ Cloud Billing API v1: Linked to billingAccounts/01A8F2-99C4E1-48B102 (Currency: USD).`,
+          topology: `  [Billing Account: 01A8F2-99C4E1-48B102] ──► [Project: acme-fintech-prod-01 ($414.07/day)]`,
+          terraform: `resource "google_billing_budget" "project_monthly_budget" {\n  billing_account = "01A8F2-99C4E1-48B102"\n  display_name    = "acme-fintech-prod-01-monthly-budget"\n  amount { specified_amount { currency_code = "USD" units = "10000" } }\n}`,
+          logs: `  $ gcloud billing projects describe acme-fintech-prod-01`
+        },
+        {
+          name: "14x Unattached pd-ssd Persistent Disks", kind: "Orphaned Storage Waste", region: "multi-region", status: "100% IDLE WASTE", cost: "$1,120 (-$1,120)", risk: "HIGH",
+          overview: `📌 14 orphaned SSD persistent disks (6.4 TB total) from deleted GKE clusters + 6 unused reserved external IPs.`,
+          iamzero: `◆ Safe to snapshot to Archive Storage and delete to reclaim $1,120/mo ($13,440/yr).`,
+          topology: `  [14x Orphaned pd-ssd Disks] ──► (Attached to: NONE)`,
+          terraform: `# Snapshot & remove unattached disks to reclaim $1,120/mo`,
+          logs: `  $ gcloud compute disks list --filter="-users:*"`
+        }
+      ],
+      "9": [
+        {
+          name: "18m ago • run.services.replaceService", kind: "CI_PIPELINE", region: "europe-west1", status: "checkout-payment-api", cost: "DIFF", risk: "CRIT",
+          overview: `⏪ CLOUD AUDIT TIME-MACHINE: Shows WHO changed WHAT in 'acme-fintech-prod-01', from WHICH IP, and lets you inspect or revert it.\n@@ Cloud Audit Log Diff: checkout-payment-api @@\n- image: ew1-docker.pkg.dev/acme/pay/api:v2.4.0\n+ image: ew1-docker.pkg.dev/acme/pay/api:v2.4.1\n- env.DB_MAX_CONNS: "5"\n+ env.DB_MAX_CONNS: "50"  # <-- CAUSED SQL 500/500 CONN EXHAUSTION!\n\n1) Press [e] or [Enter] — View Complete Raw JSON Audit Log Entry\n2) Press [r] — Execute Suggested Undo / Revert Action`,
+          iamzero: `{\n  "protoPayload": {\n    "@type": "type.googleapis.com/google.cloud.audit.AuditLog",\n    "serviceName": "run.googleapis.com",\n    "methodName": "google.cloud.run.v2.Services.UpdateService",\n    "authenticationInfo": { "principalEmail": "github-actions-deployer@acme-fintech-prod-01.iam.gserviceaccount.com" }\n  }\n}`,
+          topology: `  Rollback CLI: gcloud run services update-traffic checkout-payment-api --to-revisions=checkout-payment-api-00041-ok=100`,
+          terraform: `# Revert image tag to v2.4.0 and DB_MAX_CONNS to 5`,
+          logs: `  protoPayload.methodName = "google.cloud.run.v2.Services.UpdateService"`
+        }
+      ]
+    };
+
+    let activeMod = "1";
+    let selectedRow = 0;
+    let activeInspTab = "overview";
+
+    function renderSimulator() {
+      // Sidebar
+      const sb = document.getElementById("tuiSidebarList");
+      sb.innerHTML = `<div style="color:#64748b; font-size:11px; margin-bottom:6px; padding-left:6px;">KEY MODULE [1-9]</div>` +
+        MODULES.map(m => `
+          <button class="tui-mod-btn ${m.key === activeMod ? 'active' : ''}" onclick="selectModule('${m.key}')">
+            <span class="tui-mod-key">[${m.key}]</span>
+            <span>${m.title}</span>
+          </button>
+        `).join("");
+
+      const modMeta = MODULES.find(m => m.key === activeMod);
+      document.getElementById("tuiModuleTitle").textContent = `[${modMeta.key} :${modMeta.alias}] ${modMeta.title} — ${modMeta.subtitle}`;
+
+      // Table rows
+      const list = DATA[activeMod] || [];
+      if (selectedRow >= list.length) selectedRow = 0;
+      const tbody = document.getElementById("tuiTableBody");
+      tbody.innerHTML = list.map((r, idx) => {
+        const badgeClass = r.risk === "CRIT" ? "badge-crit" : (r.risk === "HIGH" ? "badge-high" : "badge-ok");
+        return `
+          <tr class="res-row ${idx === selectedRow ? 'selected' : ''}" onclick="selectRow(${idx})">
+            <td>${idx === selectedRow ? '▶ ' : '  '}${r.name}</td>
+            <td>${r.kind}</td>
+            <td>${r.region}</td>
+            <td>${r.status}</td>
+            <td>${r.cost}</td>
+            <td><span class="${badgeClass}">${r.risk}</span></td>
+          </tr>
+        `;
+      }).join("");
+
+      // Inspector tabs
+      ["overview", "iamzero", "topology", "terraform", "logs"].forEach(t => {
+        document.getElementById("tab-" + t).classList.toggle("active", t === activeInspTab);
+      });
+
+      const item = list[selectedRow];
+      document.getElementById("tuiInspectorContent").textContent = item ? (item[activeInspTab] || item.overview) : "No resource selected.";
+    }
+
+    function selectModule(k) {
+      activeMod = k;
+      selectedRow = 0;
+      renderSimulator();
+    }
+
+    function selectRow(idx) {
+      selectedRow = idx;
+      renderSimulator();
+    }
+
+    function setInspTab(tab) {
+      activeInspTab = tab;
+      renderSimulator();
+    }
+
+    function triggerRollbackSim() {
+      const item = (DATA["1"] || [])[0];
+      if (item) {
+        item.status = "HEALTHY (100% v2.4.0)";
+        item.risk = "OK";
+        item.overview = `✅ TRAFFIC ROLLBACK COMPLETE: 100% traffic shifted to checkout-payment-api-00041-ok (p99 latency: 41ms, 503 error rate: 0.00%!)`;
+      }
+      document.getElementById("tuiStatusMsg").textContent = "STATUS: 🚀 Instant Traffic Rollback Complete! 100% traffic shifted to rev-00041-ok (503s dropped to 0%).";
+      renderSimulator();
+    }
+
+    function triggerFixSim() {
+      const list = DATA[activeMod] || [];
+      const item = list[selectedRow];
+      if (item) {
+        item.status = "REMEDIATED (LEAST-PRIVILEGE)";
+        item.risk = "OK";
+      }
+      document.getElementById("tuiGrade").textContent = "A (92/100)";
+      document.getElementById("tuiGrade").style.color = "#34d399";
+      document.getElementById("tuiExcess").textContent = "0";
+      document.getElementById("tuiExcess").style.color = "#34d399";
+      document.getElementById("tuiStatusMsg").textContent = "STATUS: 🛡️ Applied Live Project IAM & FinOps Remediation! Stripped 6,838 excess permissions.";
+      renderSimulator();
+    }
+
+    // Keyboard shortcuts on page
+    window.addEventListener("keydown", (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key >= "1" && e.key <= "9") {
+        selectModule(e.key);
+      } else if (e.key === "v") setInspTab("overview");
+      else if (e.key === "z") setInspTab("iamzero");
+      else if (e.key === "g") setInspTab("topology");
+      else if (e.key === "t") setInspTab("terraform");
+      else if (e.key === "a") setInspTab("logs");
+      else if (e.key === "r") triggerRollbackSim();
+      else if (e.key === "f") triggerFixSim();
+    });
+
+    function copyInstall() {
+      const txt = "git clone https://github.com/damiansztankowski/lazygcp && cd lazygcp && go build . && ./lazygcp";
+      navigator.clipboard.writeText(txt);
+      const btn = document.querySelector(".copy-btn");
+      btn.textContent = "Copied ✓";
+      setTimeout(() => btn.textContent = "Copy", 2000);
+    }
+
+    // Two-state color-scheme toggle per modern-web-guidance
+    const metaScheme = document.querySelector('meta[name="color-scheme"]');
+    const toggleBtn = document.getElementById("themeToggleBtn");
+    const toggleLabel = document.getElementById("themeToggleLabel");
+    const sysDarkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    function currentEffectiveTheme() {
+      const content = metaScheme.content;
+      if (content === "dark" || content === "light") return content;
+      return sysDarkQuery.matches ? "dark" : "light";
+    }
+
+    function updateToggleText() {
+      const eff = currentEffectiveTheme();
+      toggleLabel.textContent = eff === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode";
+    }
+
+    toggleBtn.addEventListener("click", () => {
+      const next = currentEffectiveTheme() === "dark" ? "light" : "dark";
+      metaScheme.content = next;
+      document.documentElement.classList.remove("theme-light", "theme-dark");
+      document.documentElement.classList.add("theme-" + next);
+      localStorage.setItem("color-scheme", next);
+      updateToggleText();
+    });
+
+    sysDarkQuery.addEventListener("change", updateToggleText);
+    updateToggleText();
+    renderSimulator();
+  </script>
+</body>
+</html>

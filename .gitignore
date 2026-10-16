@@ -1,0 +1,66 @@
+# Binaries and build outputs
+/lazygcp
+lazygcp
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test and profiling artifacts
+*.test
+*.out
+*.prof
+*.pprof
+coverage.txt
+coverage.html
+profile.cov
+
+# GoReleaser build artifacts
+/dist/
+
+# Dependencies and cache
+/vendor/
+.cache/
+
+# lazygcp generated exports & remediation artifacts
+lazygcp-*.tf
+*-remediation.tf
+
+# GCP Credentials, Secrets & Local Environment
+*.key
+*.pem
+*credentials*.json
+*service-account*.json
+*sa-key*.json
+.env
+.env.*
+!.env.example
+
+# Logs and temporary files
+*.log
+*.tmp
+/tmp/
+/.tmp/
+
+# Operating System artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE and Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+*~
+.#*
+#*#
